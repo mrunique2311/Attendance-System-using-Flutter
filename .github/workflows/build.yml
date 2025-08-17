@@ -1,34 +1,40 @@
-name: Build APK
+name: Build Flutter APK
 
 on:
   push:
     branches:
-      - main
+      - main   # Change if your default branch is different
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout your repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2. Setup Flutter (explicit version avoids errors)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.3'  # explicit version
+          flutter-version: '3.13.3'  # exact stable version
 
-      - name: Decode google-services.json
+      # 3. Add google-services.json from secret
+      - name: Add google-services.json
         run: |
           mkdir -p android/app
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
 
+      # 4. Get dependencies
       - name: Install dependencies
         run: flutter pub get
 
+      # 5. Build release APK
       - name: Build APK
         run: flutter build apk --release --ignore-deprecation
 
+      # 6. Upload APK as artifact to download
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
